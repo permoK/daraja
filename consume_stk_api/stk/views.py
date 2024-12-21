@@ -2,6 +2,10 @@ from django.shortcuts import render
 
 from django.shortcuts import render, redirect
 
+from django.views.decorators.csrf import csrf_exempt
+
+from django.http import HttpResponse
+
 ############# api libraries#############
 import requests
 from requests.auth import HTTPBasicAuth
@@ -91,13 +95,24 @@ def init_stk(request):
     # else:
     #     return HttpResponse(response['errorMessage'])
 
-
+@csrf_exempt
 def incoming(request):
-    data = request.get_json()
-    print("Incoming Callback Request:")
-    print(request.data.decode('utf-8'))
-    callback_data = data.get('Body', {}).get('stkCallback', {})
-    print(callback_data)
-    return "ok"
+    data = json.loads(request.body.decode('utf-8'))
+    body = data.get('Body', {})
+    stk_callback = body.get('stkCallback', {})
+    merchant_request_id = stk_callback.get('MerchantRequestID', '')
+    checkout_request_id = stk_callback.get('CheckoutRequestID', '')
+    result_code = stk_callback.get('ResultCode', '')
+    result_desc = stk_callback.get('ResultDesc', '')
+    callback_metadata = stk_callback.get('CallbackMetadata', {})
+    items = callback_metadata.get('Item', [])
+    # data = json.loads(request.body)['Body']['stkCallback']
+
+    # print(data['ResultCode'])
+    print(result_code)
+    print(data)
+
+
+    return HttpResponse(data)
 
 ####################### END STK ###############################
