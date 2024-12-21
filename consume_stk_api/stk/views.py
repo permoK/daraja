@@ -92,7 +92,7 @@ def init_stk(request):
     #     return HttpResponse(response['errorMessage'])
 
 
-def incoming():
+def incoming(request):
     data = request.get_json()
     print("Incoming Callback Request:")
     print(request.data.decode('utf-8'))
