@@ -77,7 +77,7 @@ def init_stk(request):
         "PartyA": phone,
         "PartyB": "174379",
         "PhoneNumber": phone, # fill with your phone number
-        "CallBackURL": my_endpoint + "/lnmo-callback",
+        "CallBackURL": "https://codius.tech/lnmo-callback",
         "AccountReference": "TestPay",
         "TransactionDesc": "HelloTest",
         "Amount": amount
