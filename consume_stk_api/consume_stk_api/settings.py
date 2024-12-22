@@ -46,6 +46,9 @@ INSTALLED_APPS = [
 
 ]
 
+LOGOUT_REDIRECT_URL = 'auth/login/'
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -57,6 +60,14 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'consume_stk_api.urls'
+
+
+# django cors allowed origins
+CORS_ORIGIN_ALLOW_ALL = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://codius.tech'
+]
 
 TEMPLATES = [
     {
