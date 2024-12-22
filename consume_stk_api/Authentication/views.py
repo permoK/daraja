@@ -31,7 +31,7 @@ class SignUpView(CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        messages.success(self.request, "Tutor account created successfully!")
+        messages.success(self.request, "Account created successfully!")
         return response
 
 def custom_login(request):
@@ -60,11 +60,6 @@ def custom_login(request):
     return render(request, 'login.html')
 
 def redirect_user(user):
-    if user.user_type == 'tutor':
-        return redirect('Tutor:tutor_dashboard')
-    elif user.user_type == 'parent':
-        return redirect('Client:parent_dashboard')
-    else:
         return redirect('/')
 
 

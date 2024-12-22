@@ -55,7 +55,7 @@ def stkpush(request):
     return render(request, 'stk.html', )
 
 
-@login_required
+@login_required(login_url='/auth/login')
 def init_stk(request):
 
     if request.method == 'GET':
