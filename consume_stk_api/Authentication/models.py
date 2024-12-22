@@ -34,8 +34,3 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-
-class Account(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    Balance = models.IntegerField(blank=False, default=0)
-

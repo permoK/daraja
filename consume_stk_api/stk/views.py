@@ -1,3 +1,4 @@
+from django.contrib.auth.views import login_required
 from django.shortcuts import render
 
 from django.shortcuts import render, redirect
@@ -16,6 +17,12 @@ import base64
 import uuid
 
 ########################################
+
+###########models####################
+from .models import Account, MpesaRequest, MpesaPayment
+from decimal import Decimal
+
+##########endimportmodels############
 
 ########## global variable #######
 base_url = 'https://codius.tech'
@@ -48,6 +55,7 @@ def stkpush(request):
     return render(request, 'stk.html', )
 
 
+@login_required
 def init_stk(request):
 
     if request.method == 'GET':
@@ -84,16 +92,29 @@ def init_stk(request):
     }
     res = requests.post(endpoint, json=data, headers=headers)
     response = res.json()
-    # print(response)
-    # error = response["errorMessage"]
-    # print("success")
+    response_data = response
     context = { "response":response }
 
+    if response_data.get("ResponseCode") == '0':
+        MpesaRequest.objects.create(
+            user=request.user,
+            amount=amount,
+            phone_number=phone,
+            description=response_data["ResponseDescription"],
+            merchant=response_data["MerchantRequestID"],
+            status=response_data["CustomerMessage"],
+        )
+        context = {"response": response_data}
+    else:
+        MpesaRequest.objects.create(
+            user=request.user,
+            amount=amount,
+            phone_number=phone,
+            description=response_data.get("errorMessage", "Unknown error"),
+            status="Failed",
+        )
+
     return render(request, 'stkresult.html', context)   
-    # if response['ResponseCode'] == 0:
-    #     return HttpResponse("success")
-    # else:
-    #     return HttpResponse(response['errorMessage'])
 
 @csrf_exempt
 def incoming(request):
@@ -112,6 +133,23 @@ def incoming(request):
     print(result_code)
     print(data)
 
+    # Extracting the necessary data from the callback metadata
+    amount = next(item['Value'] for item in callback_metadata if item['Name'] == 'Amount')
+    print(amount)
+    mpesa_receipt_number = next(item['Value'] for item in callback_metadata if item['Name'] == 'MpesaReceiptNumber')
+    print(mpesa_receipt_number)
+    transaction_date = next(item['Value'] for item in callback_metadata if item['Name'] == 'TransactionDate')
+    print(transaction_date)
+    phone_number = next(item['Value'] for item in callback_metadata if item['Name'] == 'PhoneNumber')
+    print(phone_number)
+    
+    # saved merchant
+    user = MpesaRequest.objects.get(merchant=merchant_request_id).user
+    print(user)
+    # get the account associated with the user
+    account = Account.objects.get(username=user)
+    account.balance += Decimal(amount)
+    account.save()
 
     return HttpResponse(data)
 
