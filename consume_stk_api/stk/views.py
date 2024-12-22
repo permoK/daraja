@@ -133,23 +133,76 @@ def incoming(request):
     print(result_code)
     print(data)
 
-    # Extracting the necessary data from the callback metadata
-    amount = next(item['Value'] for item in callback_metadata if item['Name'] == 'Amount')
-    print(amount)
-    mpesa_receipt_number = next(item['Value'] for item in callback_metadata if item['Name'] == 'MpesaReceiptNumber')
-    print(mpesa_receipt_number)
-    transaction_date = next(item['Value'] for item in callback_metadata if item['Name'] == 'TransactionDate')
-    print(transaction_date)
-    phone_number = next(item['Value'] for item in callback_metadata if item['Name'] == 'PhoneNumber')
-    print(phone_number)
-    
-    # saved merchant
-    user = MpesaRequest.objects.get(merchant=merchant_request_id).user
-    print(user)
-    # get the account associated with the user
-    account = Account.objects.get(username=user)
-    account.balance += Decimal(amount)
-    account.save()
+
+    if result_code == 0:
+        print(data)
+        callback_metadata = items
+        # Extracting the necessary data from the callback metadata
+        amount = next(item['Value'] for item in callback_metadata if item['Name'] == 'Amount')
+        print(amount)
+        mpesa_receipt_number = next(item['Value'] for item in callback_metadata if item['Name'] == 'MpesaReceiptNumber')
+        print(mpesa_receipt_number)
+        transaction_date = next(item['Value'] for item in callback_metadata if item['Name'] == 'TransactionDate')
+        print(transaction_date)
+        phone_number = next(item['Value'] for item in callback_metadata if item['Name'] == 'PhoneNumber')
+        print(phone_number)
+
+        # check for macthing merchant and save the amount to the user with the matching merchant
+
+        # saved merchant
+        user = MpesaRequest.objects.get(merchant=merchant_request_id).user
+        print(user)
+        # get the account associated with the user
+        account = Account.objects.get(username=user)
+        account.balance += Decimal(amount)
+        account.save()
+
+        d = json.loads(request.body.decode('utf-8'))
+        body = d.get('Body', {})
+        stk_callback = body.get('stkCallback', {})
+
+        # Creating the MpesaPayment entry
+        MpesaPayment.objects.create(
+                amount=amount,
+                description= result_desc,
+                type="CustomerPayBillOnline",  # Assuming type from the initial request
+                reference=mpesa_receipt_number,
+                first_name="",  # If available, extract from another part of the callback or request
+                middle_name="",
+                last_name="",
+                phone_number=phone_number,
+                organization_balance=0.00,  # Assuming no balance provided in the callback
+                is_finished=True,
+                is_successful=True,
+                trans_id=mpesa_receipt_number,
+                order_id="",  # If available, extract from another part of the callback or request
+                checkout_request_id= checkout_request_id,
+                # merchant = data["Body"]["stkCallback"]["MerchantRequestID"]
+                merchant = stk_callback.get('MerchantRequestID', '')
+                )
+
+        print("saved successfully in the database")
+
+    else:
+        # Handle failed transaction
+        MpesaPayment.objects.create(
+                amount=0.00,
+                description= result_desc,
+                type="CustomerPayBillOnline",
+                reference="",
+                first_name="",
+                middle_name="",
+                last_name="",
+                phone_number="",
+                organization_balance=0.00,
+                is_finished=True,
+                is_successful=False,
+                trans_id="",
+                order_id="",
+                checkout_request_id= checkout_request_id,
+                merchant = "",
+                )
+        print('error') 
 
     return HttpResponse(data)
 
