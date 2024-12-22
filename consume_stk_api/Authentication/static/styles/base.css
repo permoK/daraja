@@ -1,0 +1,74 @@
+/* Global Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    font-family: "Lato", sans-serif;
+    line-height: 1.6;
+    background-color: #ffffff;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Montserrat", sans-serif;
+    line-height: 1.2;
+}
+
+/* Header styling */
+header {
+    border-bottom: 1px solid #767676;
+    text-align: center;
+    color: #FF5A5F
+}
+
+#header_logo {
+    height: 60px;
+    background-image: url("../images/logo.jpeg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Footer styling */
+footer {
+    background-color: #f1f1f1;
+}
+
+footer .fa {
+    color: #767676;
+    font-size: 1.5rem;
+}
+
+footer .fa:hover {
+    color: #FF5A5F; /* Airbnb Red */
+}
+
+/* Base Grid Layout */
+.container, .row {
+    margin: 0;
+    padding: 0;
+}
+
+/* Responsive Utilities */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+ul {
+    list-style-type: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+}

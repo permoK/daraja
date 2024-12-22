@@ -1,0 +1,102 @@
+@import 'bootstrap/bootstrap';
+@import 'bootstrap/variables';
+@import 'bootstrap/mixins';
+
+$font-primary: 'Lato', Arial, sans-serif;
+$primary: #FF5A5F; /* Airbnb Red */
+
+body {
+  font-family: $font-primary;
+  font-size: 16px;
+  line-height: 1.8;
+  font-weight: normal;
+  background: black;
+  color: lighten($black, 50%);
+}
+
+a {
+  transition: .3s all ease;
+  color: $primary;
+  &:hover, &:focus {
+    text-decoration: none !important;
+    outline: none !important;
+    box-shadow: none;
+  }
+}
+
+h1, h2, h3, h4, h5,
+.h1, .h2, .h3, .h4, .h5 {
+  line-height: 1.5;
+  font-weight: 400;
+  font-family: $font-primary;
+  color: $black;
+}
+
+.bg-primary {
+  background: $primary !important;
+}
+
+.ftco-section {
+  padding: 7em 0;
+}
+
+.login-wrap {
+  position: relative;
+  background: $white;
+  border-radius: 10px;
+  box-shadow: 0px 10px 34px -15px rgba(0,0,0,0.24);
+  
+  h3 {
+    font-weight: 300;
+  }
+  
+  .icon {
+    width: 80px;
+    height: 80px;
+    background: $primary;
+    border-radius: 50%;
+    font-size: 30px;
+    margin: 0 auto;
+    margin-bottom: 10px;
+    
+    span {
+      color: $white;
+    }
+  }
+}
+
+// FORM CONTROL
+.form-control {
+  height: 52px;
+  background: $white;
+  color: $black;
+  font-size: 16px;
+  border-radius: 5px;
+  box-shadow: none;
+  border: 1px solid rgba(0,0,0,.1);
+  
+  &:focus, &:active {
+    outline: none !important;
+    box-shadow: none;
+    border: 1px solid $primary;
+  }
+}
+
+.btn {
+  cursor: pointer;
+  border-radius: 40px;
+  box-shadow: none!important;
+  font-size: 15px;
+  
+  &.btn-primary {
+    background: $primary !important;
+    border: 1px solid $primary !important;
+    color: $white !important;
+
+    &:hover {
+      border: 1px solid $primary;
+      background: transparent;
+      color: $primary;
+    }
+  }
+}
