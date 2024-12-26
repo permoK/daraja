@@ -45,6 +45,7 @@ def get_access_token():
 
 
 ######################### STK #################################
+@login_required(login_url='/auth/login')
 def stkpush(request):
     return render(request, 'stkresult.html', )
 
@@ -62,7 +63,6 @@ def format_phone_number(phone):
     # Convert back to integer
     return int(phone_str)
 
-@login_required(login_url='/auth/login')
 def init_stk(request):
     if request.method == 'GET':
         phone = request.GET.get('phone')
