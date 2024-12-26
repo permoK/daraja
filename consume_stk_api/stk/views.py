@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 
 from django.views.decorators.csrf import csrf_exempt
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 ############# api libraries#############
 import requests
@@ -46,54 +46,57 @@ def get_access_token():
 
 ######################### STK #################################
 def stkpush(request):
-    phone = request.POST.get('phone')
-    amount = request.POST.get('amount')
+    return render(request, 'stkresult.html', )
 
-    # if form.is_valid():
-        
-
-    return render(request, 'stk.html', )
-
+def format_phone_number(phone):
+    # Convert phone to string first to check starting digit
+    phone_str = str(phone)
+    
+    # Remove any spaces or special characters
+    phone_str = ''.join(filter(str.isdigit, phone_str))
+    
+    # If number starts with 0, replace it with 254
+    if phone_str.startswith('0'):
+        phone_str = '254' + phone_str[1:]
+    
+    # Convert back to integer
+    return int(phone_str)
 
 @login_required(login_url='/auth/login')
 def init_stk(request):
-
     if request.method == 'GET':
         phone = request.GET.get('phone')
         amount = request.GET.get('amount')
     else:
         phone = request.POST.get('phone')
         amount = request.POST.get('amount')
-    
+     # Format the phone number
+    phone = format_phone_number(phone)   
     print(phone, amount)
 
     endpoint = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
     access_token = get_access_token()
     headers = { "Authorization": f"Bearer {access_token}" }
-    my_endpoint = base_url 
     Timestamp = datetime.now()
     times = Timestamp.strftime("%Y%m%d%H%M%S")
     password = "174379" + "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919" + times
-    datapass = base64.b64encode(password.encode('utf-8')).decode('utf-8')  # Decode to string
-    # print(datapass)
+    datapass = base64.b64encode(password.encode('utf-8')).decode('utf-8')
 
     data = {
         "BusinessShortCode": "174379",
         "Password": datapass,
         "Timestamp": times,
-        "TransactionType": "CustomerPayBillOnline", # for paybill - CustomerPayBillOnline
+        "TransactionType": "CustomerPayBillOnline",
         "PartyA": phone,
         "PartyB": "174379",
-        "PhoneNumber": phone, # fill with your phone number
+        "PhoneNumber": phone,
         "CallBackURL": "https://codius.tech/lnmo-callback",
         "AccountReference": "TestPay",
         "TransactionDesc": "HelloTest",
         "Amount": amount
     }
     res = requests.post(endpoint, json=data, headers=headers)
-    response = res.json()
-    response_data = response
-    context = { "response":response }
+    response_data = res.json()
 
     if response_data.get("ResponseCode") == '0':
         MpesaRequest.objects.create(
@@ -104,7 +107,7 @@ def init_stk(request):
             merchant=response_data["MerchantRequestID"],
             status=response_data["CustomerMessage"],
         )
-        context = {"response": response_data}
+        message = response_data["CustomerMessage"]
     else:
         MpesaRequest.objects.create(
             user=request.user,
@@ -113,8 +116,13 @@ def init_stk(request):
             description=response_data.get("errorMessage", "Unknown error"),
             status="Failed",
         )
+        message = response_data.get("Unknown error")
 
-    return render(request, 'stkresult.html', context)   
+    if request.headers.get('HX-Request'):
+        return JsonResponse({"message": message})
+    else:
+        context = {"response": response_data}
+        return render(request, 'stkresult.html', context)
 
 @csrf_exempt
 def incoming(request):

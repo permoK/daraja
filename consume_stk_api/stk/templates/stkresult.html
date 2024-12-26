@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STK Push Payment Form</title>
+    <!-- Include HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .response-message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+
+        .error-message {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+
+        .htmx-indicator {
+            display: none;
+        }
+        .htmx-request .htmx-indicator {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+    <form hx-post="/init_stk/" 
+          hx-trigger="submit" 
+          hx-target="#response-div" 
+          hx-swap="innerHTML"
+          hx-indicator="#loading">
+		{% csrf_token %}
+        <div class="form-group">
+            <label for="phoneNumber">Phone Number:</label>
+            <input type="tel" 
+                   id="phoneNumber" 
+                   name="phone" 
+                   placeholder="Enter phone number (e.g., 0712345678)" 
+                   required>
+            <div id="phoneError" class="error">Please enter a valid Kenyan phone number</div>
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Amount (KES):</label>
+            <input type="number" 
+                   id="amount" 
+                   name="amount" 
+                   min="1" 
+                   step="1" 
+                   placeholder="Enter amount" 
+                   required>
+        </div>
+
+        <button type="submit">
+            <span class="htmx-indicator" id="loading">Processing...</span>
+            <span>Pay Now</span>
+        </button>
+    </form>
+
+    <!-- Response message div -->
+    <div id="response-div" class="response-message"></div>
+
+    <script>
+        function formatPhoneNumber(phone) {
+            // Remove any non-digit characters
+            let cleaned = phone.replace(/\D/g, '');
+            
+            // If the number starts with '0', remove it
+            if (cleaned.startsWith('0')) {
+                cleaned = cleaned.substring(1);
+            }
+            
+            // If the number starts with '254', remove it
+            if (cleaned.startsWith('254')) {
+                cleaned = cleaned.substring(3);
+            }
+            
+            // Check if the remaining number has 9 digits
+            if (cleaned.length !== 9) {
+                return null;
+            }
+            
+            // Add the 254 prefix
+            return '254' + cleaned;
+        }
+
+        document.getElementById('phoneNumber').addEventListener('input', function(e) {
+            const phoneError = document.getElementById('phoneError');
+            const formattedPhone = formatPhoneNumber(e.target.value);
+            
+            if (!formattedPhone) {
+                phoneError.style.display = 'block';
+            } else {
+                phoneError.style.display = 'none';
+            }
+        });
+
+        // Format phone number before form submission
+        document.querySelector('form').addEventListener('htmx:beforeRequest', function(evt) {
+            const phoneInput = document.getElementById('phoneNumber');
+            const formattedPhone = formatPhoneNumber(phoneInput.value);
+            
+            if (!formattedPhone) {
+                evt.preventDefault();
+                document.getElementById('phoneError').style.display = 'block';
+                return;
+            }
+            
+            // Update the phone input value with the formatted number
+            phoneInput.value = formattedPhone;
+        });
+
+        // Handle response
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            const responseDiv = document.getElementById('response-div');
+            if (evt.detail.successful) {
+                responseDiv.classList.add('success');
+                responseDiv.classList.remove('error-message');
+            } else {
+                responseDiv.classList.add('error-message');
+                responseDiv.classList.remove('success');
+            }
+        });
+    </script>
+</body>
+</html>
