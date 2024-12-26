@@ -46,7 +46,7 @@ def custom_login(request):
             
             # Determine the redirect URL
             if user:
-                redirect_url = reverse('Authentication:index')
+                redirect_url = reverse('stk:stkpush')
             else:
                 redirect_url = '/'
             
